@@ -1,5 +1,11 @@
 {
-    "require": {
-        "linecorp/line-bot-sdk": "^4.2"
-    }
+	"require": {
+		"linecorp/line-bot-sdk": "^4.2"
+	},
+	"autoload": {
+		"psr-4": {
+			"src\\": "src/",
+			"src\\flex\\": "src/flex"
+		}
+	}
 }

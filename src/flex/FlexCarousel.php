@@ -1,6 +1,6 @@
 <?php
 
-namespace Flex;
+namespace src\flex;
 
 use LINE\LINEBot\Constant\Flex\ComponentButtonHeight;
 use LINE\LINEBot\Constant\Flex\ComponentFontSize;

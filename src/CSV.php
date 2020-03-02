@@ -1,9 +1,9 @@
 <?php
 
-class csv
-{
-    private const CSV_FOLDER = __DIR__ . "/csv";
+namespace src;
 
+class CSV
+{
     private const MAX_CSV = 5;
     private const MIN_CSV = 2;
 
@@ -15,35 +15,32 @@ class csv
     public const DIFF_TYPE_NEW = 0;
     public const DIFF_TYPE_UPDATE = 1;
 
-    private $csv_url = "";
+    private static $csv_folder = "";
+    private static $csv_url = "";
 
     public function __construct(String $csv_url)
     {
-        $this->csv_url = $csv_url;
+        self::$csv_folder = dirname(__DIR__) . "/csv/";
+        self::$csv_url = $csv_url;
     }
 
 
-    public function boot()
+    public function get()
     {
-        $this->get();
-    }
-
-
-    private function get()
-    {
-        if (!file_exists(self::CSV_FOLDER)) {
-            mkdir(self::CSV_FOLDER);
+        if (!file_exists(self::$csv_folder)) {
+            mkdir(self::$csv_folder);
         }
 
-        $files = glob(self::CSV_FOLDER . "/*");
-        $sorted_files = usort($files, "sort");
+        $files = glob(self::$csv_folder . "*");
 
-        if (count($sorted_files) >= self::MAX_CSV) {
-            unlink($sorted_files[self::MAX_CSV - 1]);
+        rsort($files);
+
+        if (count($files) >= self::MAX_CSV) {
+            unlink($files[self::MAX_CSV - 1]);
         }
 
-        $csv = file_get_contents($this->csv_url);
-        $path = self::CSV_FOLDER . "/" . time() . ".csv";
+        $csv = file_get_contents(self::$csv_url);
+        $path = self::$csv_folder . time() . ".csv";
 
         file_put_contents($path, $csv);
     }
@@ -51,20 +48,21 @@ class csv
 
     public function pickup(): array
     {
-        $files = glob(self::CSV_FOLDER . "/*");
-        $sorted_files = usort($files, "sort");
+        $files = glob(self::$csv_folder . "*");
 
-        if (count($sorted_files) <= self::MIN_CSV) {
+        rsort($files);
+
+        if (count($files) <= self::MIN_CSV) {
             return [
                 "result" => false,
                 "csv" => null
             ];
         }
 
-        $csv = new stdClass;
+        $csv = new \stdClass;
 
-        $csv->new = $this->parseCsv($sorted_files[0]);
-        $csv->old = $this->parseCsv($sorted_files[1]);
+        $csv->new = $this->parseCsv($files[0]);
+        $csv->old = $this->parseCsv($files[1]);
 
         return [
             "result" => true,
@@ -90,12 +88,16 @@ class csv
         for ($i = 0; $i < $newCsvCount; $i++) {
             $result = array_diff($newCsv[$i], $oldCsv[$i]);
 
-            $data = new stdClass();
+            $data = new \stdClass();
+
+            if ($i === 211) {
+                var_dump($newCsv[211], $oldCsv[211]);
+            }
 
             if (!empty($result)) {
                 if (isset($result[self::LAST_ROW]) && isset($oldCsv[$i][self::LAST_ROW])) {
                     $results[$i] = $result;
-                    if (strlen($result[self::LAST_ROW]) - strlen($result[$i][self::LAST_ROW]) === self::LAST_DIFF) {
+                    if (strlen($result[self::LAST_ROW]) - strlen($oldCsv[$i][self::LAST_ROW]) === self::LAST_DIFF) {
                         unset($results[$i][self::LAST_ROW]);
                     }
 
@@ -116,7 +118,21 @@ class csv
             }
         }
 
-        $empty = empty($results);
+        if ($empty = empty($results)) {
+            foreach ($results as $key => $result) {
+                if (isset($result[self::LAST_ROW])) continue;
+
+                $encode = explode("、", $result[self::LAST_ROW]);
+                $encode[0] = trim($encode[0]);
+
+                if (!isset($encode[1])) {
+                    $encode[1] = "なし";
+                }
+
+                $results[$key][self::LAST_ROW - 1] = $encode[0];
+                $results[$key][self::LAST_ROW] = $encode[1];
+            }
+        }
 
         return [
             "result" => !$empty,
@@ -137,11 +153,5 @@ class csv
         }
 
         return $datas;
-    }
-
-
-    private static function sort($a, $b)
-    {
-        return filemtime($b) - filemtime($a);
     }
 }
