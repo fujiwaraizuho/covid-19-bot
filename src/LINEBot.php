@@ -6,8 +6,6 @@ use LINE\LINEBot\HTTPClient\CurlHTTPClient;
 use src\flex\FlexBubble;
 use src\flex\FlexCarousel;
 
-require_once(dirname(__DIR__) . "/vendor/autoload.php");
-
 class LINEBot
 {
 

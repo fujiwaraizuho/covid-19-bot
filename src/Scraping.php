@@ -4,8 +4,6 @@ namespace src;
 
 use phpQuery;
 
-require_once(dirname(__DIR__) . "/vendor/autoload.php");
-
 class Scraping
 {
     private const SOURCE_URL = "https://www.mhlw.go.jp/stf/newpage_09889.html";
