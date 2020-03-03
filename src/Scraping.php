@@ -6,7 +6,8 @@ use phpQuery;
 
 class Scraping
 {
-    private const SOURCE_URL = "https://www.mhlw.go.jp/stf/newpage_09889.html";
+    private const SOURCE_URL = "https://www.mhlw.go.jp/stf/houdou/houdou_list_202003.html";
+    private const BASE_URL = "https://www.mhlw.go.jp";
 
     private static $path = "";
 
@@ -20,6 +21,18 @@ class Scraping
     {
         $html = file_get_contents(self::SOURCE_URL);
 
+        $dom = phpQuery::newDocumentHTML($html);
+
+        $links = [];
+
+        foreach ($dom[".m-listNews"]->find("li") as $row) {
+            $title = pq($row)->find("span")->text();
+            if (preg_match("/新型コロナウイルス感染症の現在の状況と厚生労働省の対応について/", $title)) {
+                $links[] = pq($row)->find("a")->attr("href");
+            }
+        }
+
+        $html = file_get_contents(self::BASE_URL . $links[0]);
         $dom = phpQuery::newDocumentHTML($html);
 
         $datas = [];
