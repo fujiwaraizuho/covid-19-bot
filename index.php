@@ -11,13 +11,11 @@ require_once(__DIR__ . "/vendor/autoload.php");
 define("LINE_CHANNEL_SECRET", "");
 define("LINE_CHANNEL_TOKEN", "");
 
-define("CSV_URL", "https://toyokeizai.net/sp/visual/tko/covid19/csv/data.csv");
-
 boot();
 
 function boot()
 {
-    $csv = new CSV(CSV_URL);
+    $csv = new CSV();
     $csv->get();
 
     $csvs = $csv->pickup();
