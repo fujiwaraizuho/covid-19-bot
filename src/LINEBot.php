@@ -85,47 +85,49 @@ class LINEBot
             }
 
             $message = new FlexBubble(self::$altMessage[$diffs->type], $data);
-
-            $message->get();
+            $this->bot->broadcast($message->get());
         } else {
-            $datas = [];
+            $chunks = array_chunk($diffs, 10);
 
-            foreach ($diffs as $diff) {
-                $data = new \stdClass;
+            foreach ($chunks as $diffs) {
+                $datas = [];
 
-                $data->type = self::$type[$diff->type];
-                $data->title = self::$title;
-                $data->message = self::$message[$diff->type];
+                foreach ($diffs as $diff) {
+                    $data = new \stdClass;
 
-                $data->baseline = [];
+                    $data->type = self::$type[$diff->type];
+                    $data->title = self::$title;
+                    $data->message = self::$message[$diff->type];
 
-                for ($i = 1; $i <= self::BASELINE_CLOSE_CONTACT_STATUS; $i++) {
-                    $data->baseline[$i] = new \stdClass;
-                    $data->baseline[$i]->bold = false;
-                }
+                    $data->baseline = [];
 
-                if (isset($diff->bold)) {
-                    foreach ($diff->bold as $bold) {
-                        $data->baseline[$bold]->bold = true;
+                    for ($i = 1; $i <= self::BASELINE_CLOSE_CONTACT_STATUS; $i++) {
+                        $data->baseline[$i] = new \stdClass;
+                        $data->baseline[$i]->bold = false;
                     }
+
+                    if (isset($diff->bold)) {
+                        foreach ($diff->bold as $bold) {
+                            $data->baseline[$bold]->bold = true;
+                        }
+                    }
+
+
+                    $diff = $diff->diff;
+
+                    $data->baseline[self::BASELINE_DATE]->text = $diff[1];
+                    $data->baseline[self::BASELINE_OLD]->text = $diff[2];
+                    $data->baseline[self::BASELINE_GENDER]->text = $diff[3];
+                    $data->baseline[self::BASELINE_RECIDENCE]->text = $diff[4];
+                    $data->baseline[self::BASELINE_CLOSE_CONTACT]->text = $diff[5];
+                    $data->baseline[self::BASELINE_CLOSE_CONTACT_STATUS]->text = $diff[6];
+
+                    $datas[] = $data;
                 }
 
-
-                $diff = $diff->diff;
-
-                $data->baseline[self::BASELINE_DATE]->text = $diff[1];
-                $data->baseline[self::BASELINE_OLD]->text = $diff[2];
-                $data->baseline[self::BASELINE_GENDER]->text = $diff[3];
-                $data->baseline[self::BASELINE_RECIDENCE]->text = $diff[4];
-                $data->baseline[self::BASELINE_CLOSE_CONTACT]->text = $diff[5];
-                $data->baseline[self::BASELINE_CLOSE_CONTACT_STATUS]->text = $diff[6];
-
-                $datas[] = $data;
+                $message = new FlexCarousel(self::$altMessage[2], $datas);
+                $this->bot->broadcast($message->get());
             }
-
-            $message = new FlexCarousel(self::$altMessage[2], $datas);
         }
-
-        $this->bot->broadcast($message->get());
     }
 }
