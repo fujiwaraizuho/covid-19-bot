@@ -15,13 +15,14 @@ use LINE\LINEBot\MessageBuilder\Flex\ComponentBuilder\TextComponentBuilder;
 use LINE\LINEBot\MessageBuilder\Flex\ContainerBuilder\BubbleContainerBuilder;
 use LINE\LINEBot\MessageBuilder\FlexMessageBuilder;
 use LINE\LINEBot\TemplateActionBuilder\UriTemplateActionBuilder;
+use src\LINEBot;
 
 class FlexBubble
 {
     private static $altText = "";
     private static $data = [];
 
-    public function __construct(String $altText, array $data)
+    public function __construct(String $altText, \stdClass $data)
     {
         self::$altText = $altText;
         self::$data = $data;
@@ -40,35 +41,37 @@ class FlexBubble
     }
 
 
-    private static function createBodyBlock(array $data): BoxComponentBuilder
+    private static function createBodyBlock(\stdClass $data): BoxComponentBuilder
     {
         $components = [];
 
         $components[] = TextComponentBuilder::builder()
-            ->setText($data["type"])
+            ->setText($data->type)
             ->setColor("#FF0000")
             ->setWeight(ComponentFontWeight::BOLD)
             ->setSize(ComponentFontSize::XL);
 
         $components[] = TextComponentBuilder::builder()
-            ->setText($data["title"])
+            ->setText($data->title)
             ->setWeight(ComponentFontWeight::REGULAR)
             ->setSize(ComponentFontSize::XL);
 
         $components[] = TextComponentBuilder::builder()
-            ->setText($data["message"])
+            ->setText($data->message)
             ->setSize(ComponentFontSize::SM)
             ->setMargin(ComponentMargin::SM);
 
         $components[] = SeparatorComponentBuilder::builder()
             ->setMargin(ComponentMargin::LG);
 
-        $components[] = self::createBaseLineBoxBlock("確定日", $data["baseline"]["date"]);
-        $components[] = self::createBaseLineBoxBlock("年齢", $data["baseline"]["old"]);
-        $components[] = self::createBaseLineBoxBlock("性別", $data["baseline"]["gender"]);
-        $components[] = self::createBaseLineBoxBlock("居住地", $data["baseline"]["residence"]);
-        $components[] = self::createBaseLineBoxBlock("濃厚接触者", $data["baseline"]["close_contact"]);
-        $components[] = self::createBaseLineBoxBlock("濃厚接触者の状況", $data["baseline"]["close_contact_status"], 5);
+        $baseline = $data->baseline;
+
+        $components[] = self::createBaseLineBoxBlock("確定日", $baseline[LINEBot::BASELINE_DATE]);
+        $components[] = self::createBaseLineBoxBlock("年齢", $baseline[LINEBot::BASELINE_OLD]);
+        $components[] = self::createBaseLineBoxBlock("性別", $baseline[LINEBot::BASELINE_GENDER]);
+        $components[] = self::createBaseLineBoxBlock("居住地", $baseline[LINEBot::BASELINE_RECIDENCE]);
+        $components[] = self::createBaseLineBoxBlock("濃厚接触者", $baseline[LINEBot::BASELINE_CLOSE_CONTACT]);
+        $components[] = self::createBaseLineBoxBlock("濃厚接触者の状況", $baseline[LINEBot::BASELINE_CLOSE_CONTACT_STATUS], 5);
 
         $components[] = SeparatorComponentBuilder::builder()
             ->setMargin(ComponentSpacing::LG);
@@ -79,9 +82,15 @@ class FlexBubble
     }
 
 
-    private static function createBaseLineBoxBlock(String $title, String $data, Int $titleFlex = 3, Int $dataFlex = 5): BoxComponentBuilder
+    private static function createBaseLineBoxBlock(String $title, \stdClass $data, Int $titleFlex = 3, Int $dataFlex = 5): BoxComponentBuilder
     {
         $components = [];
+
+        if ($data->bold) {
+            $color = "#000000";
+        } else {
+            $color = "#666666";
+        }
 
         $components[] = TextComponentBuilder::builder()
             ->setText($title)
@@ -90,9 +99,9 @@ class FlexBubble
             ->setFlex($titleFlex);
 
         $components[] = TextComponentBuilder::builder()
-            ->setText($data)
+            ->setText($data->text)
             ->setSize(ComponentFontSize::SM)
-            ->setColor("#666666")
+            ->setColor($color)
             ->setFlex($dataFlex)
             ->setWrap(true);
 

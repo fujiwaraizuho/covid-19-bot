@@ -16,6 +16,7 @@ use LINE\LINEBot\MessageBuilder\Flex\ContainerBuilder\BubbleContainerBuilder;
 use LINE\LINEBot\MessageBuilder\Flex\ContainerBuilder\CarouselContainerBuilder;
 use LINE\LINEBot\MessageBuilder\FlexMessageBuilder;
 use LINE\LINEBot\TemplateActionBuilder\UriTemplateActionBuilder;
+use src\LINEBot;
 
 class FlexCarousel
 {
@@ -51,35 +52,37 @@ class FlexCarousel
     }
 
 
-    private static function createBodyBlock(array $datas): BoxComponentBuilder
+    private static function createBodyBlock(\stdClass $data): BoxComponentBuilder
     {
         $components = [];
 
         $components[] = TextComponentBuilder::builder()
-            ->setText($datas["type"])
+            ->setText($data->type)
             ->setColor("#FF0000")
             ->setWeight(ComponentFontWeight::BOLD)
             ->setSize(ComponentFontSize::XL);
 
         $components[] = TextComponentBuilder::builder()
-            ->setText($datas["title"])
+            ->setText($data->title)
             ->setWeight(ComponentFontWeight::REGULAR)
             ->setSize(ComponentFontSize::XL);
 
         $components[] = TextComponentBuilder::builder()
-            ->setText($datas["message"])
+            ->setText($data->message)
             ->setSize(ComponentFontSize::SM)
             ->setMargin(ComponentMargin::SM);
 
         $components[] = SeparatorComponentBuilder::builder()
             ->setMargin(ComponentMargin::LG);
 
-        $components[] = self::createBaseLineBoxBlock("確定日", $datas["baseline"]["date"]);
-        $components[] = self::createBaseLineBoxBlock("年齢", $datas["baseline"]["old"]);
-        $components[] = self::createBaseLineBoxBlock("性別", $datas["baseline"]["gender"]);
-        $components[] = self::createBaseLineBoxBlock("居住地", $datas["baseline"]["residence"]);
-        $components[] = self::createBaseLineBoxBlock("濃厚接触者", $datas["baseline"]["close_contact"]);
-        $components[] = self::createBaseLineBoxBlock("濃厚接触者の状況", $datas["baseline"]["close_contact_status"], 5);
+        $baseline = $data->baseline;
+
+        $components[] = self::createBaseLineBoxBlock("確定日", $baseline[LINEBot::BASELINE_DATE]);
+        $components[] = self::createBaseLineBoxBlock("年齢", $baseline[LINEBot::BASELINE_OLD]);
+        $components[] = self::createBaseLineBoxBlock("性別", $baseline[LINEBot::BASELINE_GENDER]);
+        $components[] = self::createBaseLineBoxBlock("居住地", $baseline[LINEBot::BASELINE_RECIDENCE]);
+        $components[] = self::createBaseLineBoxBlock("濃厚接触者", $baseline[LINEBot::BASELINE_CLOSE_CONTACT]);
+        $components[] = self::createBaseLineBoxBlock("濃厚接触者の状況", $baseline[LINEBot::BASELINE_CLOSE_CONTACT_STATUS], 5);
 
         $components[] = SeparatorComponentBuilder::builder()
             ->setMargin(ComponentSpacing::LG);
@@ -90,9 +93,15 @@ class FlexCarousel
     }
 
 
-    private static function createBaseLineBoxBlock(String $title, String $data, Int $titleFlex = 3, Int $dataFlex = 5): BoxComponentBuilder
+    private static function createBaseLineBoxBlock(String $title, \stdClass $data, Int $titleFlex = 3, Int $dataFlex = 5): BoxComponentBuilder
     {
         $components = [];
+
+        if ($data->bold) {
+            $color = "#000000";
+        } else {
+            $color = "#666666";
+        }
 
         $components[] = TextComponentBuilder::builder()
             ->setText($title)
@@ -101,9 +110,9 @@ class FlexCarousel
             ->setFlex($titleFlex);
 
         $components[] = TextComponentBuilder::builder()
-            ->setText($data)
+            ->setText($data->text)
             ->setSize(ComponentFontSize::SM)
-            ->setColor("#666666")
+            ->setColor($color)
             ->setFlex($dataFlex)
             ->setWrap(true);
 

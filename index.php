@@ -1,10 +1,7 @@
 <?php
 
-use src\flex\FlexBubble;
-use src\flex\FlexCarousel;
 use src\CSV;
 use src\LINEBot;
-use src\RAW;
 
 require_once(__DIR__ . "/vendor/autoload.php");
 
@@ -22,7 +19,9 @@ function boot()
 
     if ($csvs["result"]) {
         $diffs = $csv->diff($csvs["csv"]->new, $csvs["csv"]->old);
-
-        var_dump($diffs);
+        if ($diffs["result"]) {
+            $bot = new LINEBot(LINE_CHANNEL_TOKEN, LINE_CHANNEL_SECRET);
+            $bot->broadcast($diffs["diff"]);
+        }
     }
 }
